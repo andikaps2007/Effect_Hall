@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hall Effect — Simulasi Interaktif Lanjutan</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap');
+:root{--bg:#050a12;--panel:#0a1525;--border:#0d2a4a;--accent:#00e5ff;--accent2:#ff4d6d;--accent3:#ffe066;--accent4:#b388ff;--voltage:#66bb6a;--text:#c8d8e8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 15% 15%,rgba(0,100,200,0.09) 0%,transparent 55%),radial-gradient(ellipse at 85% 85%,rgba(200,0,80,0.07) 0%,transparent 55%),linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,40px 40px,40px 40px;}
+header{text-align:center;padding:26px 20px 0;}
+header h1{font-family:'Orbitron',monospace;font-size:clamp(1.2rem,3.2vw,2.4rem);font-weight:900;letter-spacing:0.12em;
+  background:linear-gradient(90deg,var(--accent),#80dfff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(0,229,255,0.5));}
+header p{font-family:'Share Tech Mono',monospace;color:#5fa0c0;font-size:0.76rem;margin-top:4px;letter-spacing:0.08em;}
+.tab-bar{display:flex;justify-content:center;gap:6px;margin:12px auto 0;flex-wrap:wrap;max-width:900px;padding:0 12px;}
+.tab-btn{font-family:'Orbitron',monospace;font-size:0.56rem;letter-spacing:0.1em;padding:7px 15px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:#5fa0c0;cursor:pointer;transition:all 0.18s;text-transform:uppercase;}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent);}
+.tab-btn.active{background:var(--accent);color:#050a12;border-color:var(--accent);box-shadow:0 0 14px rgba(0,229,255,0.45);}
+.tab-page{display:none;}.tab-page.active{display:block;}
+.main-layout{display:grid;grid-template-columns:208px 1fr 208px;gap:13px;max-width:1100px;margin:13px auto;padding:0 11px;}
+@media(max-width:820px){.main-layout{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px 13px;box-shadow:0 0 24px rgba(0,229,255,0.04),inset 0 0 28px rgba(0,20,40,0.5);position:relative;}
+.panel-title{font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:0.18em;color:var(--accent);text-transform:uppercase;margin-bottom:11px;border-bottom:1px solid var(--border);padding-bottom:6px;opacity:0.85;}
+.canvas-area{display:flex;flex-direction:column;align-items:center;gap:10px;}
+#simCanvas{border-radius:10px;border:1.5px solid rgba(0,229,255,0.18);box-shadow:0 0 40px rgba(0,229,255,0.08);display:block;cursor:crosshair;width:100%;max-width:640px;}
+.ctrl-group{margin-bottom:12px;}
+.ctrl-label{font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:#5fa0c0;margin-bottom:4px;display:flex;justify-content:space-between;}
+.ctrl-label span{color:var(--accent);font-weight:700;font-size:0.78rem;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 7px var(--accent);cursor:pointer;transition:transform 0.1s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
+select{width:100%;background:#060f1e;color:var(--accent);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:'Share Tech Mono',monospace;font-size:0.68rem;outline:none;cursor:pointer;margin-top:3px;}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+button{font-family:'Orbitron',monospace;font-size:0.56rem;letter-spacing:0.1em;padding:6px 11px;border-radius:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;transition:all 0.18s;text-transform:uppercase;flex:1;}
+button:hover{background:rgba(0,229,255,0.12);box-shadow:0 0 10px rgba(0,229,255,0.3);}
+button.active{background:var(--accent);color:#050a12;box-shadow:0 0 14px rgba(0,229,255,0.5);}
+button.danger{border-color:var(--accent2);color:var(--accent2);}
+button.danger:hover{background:rgba(255,77,109,0.12);}
+button.purple{border-color:var(--accent4);color:var(--accent4);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;font-family:'Share Tech Mono',monospace;font-size:0.66rem;color:#5fa0c0;}
+.toggle{position:relative;width:38px;height:20px;}
+.toggle input{opacity:0;width:0;height:0;}
+.slider-sw{position:absolute;inset:0;background:var(--border);border-radius:22px;cursor:pointer;transition:background 0.2s;}
+.slider-sw::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#5fa0c0;border-radius:50%;transition:transform 0.2s,background 0.2s;}
+.toggle input:checked+.slider-sw{background:rgba(0,229,255,0.2);}
+.toggle input:checked+.slider-sw::before{transform:translateX(18px);background:var(--accent);box-shadow:0 0 7px var(--accent);}
+.meter-box{background:rgba(0,20,40,0.7);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:9px;position:relative;overflow:hidden;}
+.meter-box::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,255,0.03) 0%,transparent 60%);}
+.meter-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:#5fa0c0;letter-spacing:0.1em;text-transform:uppercase;}
+.meter-val{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,0.6);letter-spacing:0.05em;line-height:1.2;margin-top:2px;}
+.meter-val.volt{color:var(--voltage);text-shadow:0 0 10px rgba(102,187,106,0.6);}
+.meter-val.red{color:var(--accent2);text-shadow:0 0 10px rgba(255,77,109,0.5);}
+.meter-bar{height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden;}
+.meter-bar-fill{height:100%;border-radius:2px;transition:width 0.3s;background:var(--accent);}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:0.74rem;margin-bottom:6px;color:#8aaccc;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 5px currentColor;}
+.formula{background:rgba(0,10,25,0.8);border:1px solid rgba(0,229,255,0.1);border-radius:8px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:#4d9fcc;line-height:2;margin-top:7px;}
+.formula .eq{color:var(--accent3);}.formula .sym{color:var(--accent);}
+.info-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.info-chip{background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:4px;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#5fa0c0;}
+.info-chip b{color:var(--accent);}
+/* GRAPH */
+.graph-layout{display:grid;grid-template-columns:1fr 1fr;gap:13px;max-width:1100px;margin:13px auto;padding:0 11px;}
+@media(max-width:700px){.graph-layout{grid-template-columns:1fr;}}
+#graphCanvas,#oscCanvas,#phaseCanvas,#histCanvas{width:100%;border-radius:8px;border:1px solid var(--border);background:#030810;display:block;}
+/* EDU */
+.edu-layout{max-width:900px;margin:13px auto;padding:0 11px;display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+@media(max-width:640px){.edu-layout{grid-template-columns:1fr;}}
+.edu-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.edu-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent4));}
+.edu-card h3{font-family:'Orbitron',monospace;font-size:0.72rem;letter-spacing:0.12em;color:var(--accent);margin-bottom:11px;text-transform:uppercase;}
+.edu-card p{font-size:0.85rem;line-height:1.7;color:#8aaccc;margin-bottom:7px;}
+.edu-card li{font-size:0.83rem;line-height:1.7;color:#8aaccc;margin-bottom:6px;padding-left:8px;border-left:2px solid var(--accent);list-style:none;margin-left:8px;}
+.step-box{background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.11);border-radius:8px;padding:10px;margin-bottom:9px;}
+.step-num{font-family:'Orbitron',monospace;font-size:0.57rem;color:var(--accent3);letter-spacing:0.15em;margin-bottom:4px;}
+.step-text{font-size:0.83rem;color:#8aaccc;line-height:1.6;}
+.highlight{color:var(--accent);font-weight:700;}
+.mat-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.62rem;font-family:'Share Tech Mono',monospace;letter-spacing:0.06em;margin-top:4px;border:1px solid;}
+.mat-n{color:#4fc3f7;border-color:#4fc3f7;background:rgba(79,195,247,0.08);}
+.mat-p{color:#ef5350;border-color:#ef5350;background:rgba(239,83,80,0.08);}
+.mat-m{color:#66bb6a;border-color:#66bb6a;background:rgba(102,187,106,0.08);}
+/* QUIZ */
+.quiz-layout{max-width:680px;margin:13px auto;padding:0 11px;}
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;}
+.quiz-q{font-size:0.98rem;font-weight:600;color:var(--text);margin-bottom:15px;line-height:1.5;}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.quiz-opt{background:rgba(0,20,40,0.7);border:1.5px solid var(--border);border-radius:8px;padding:11px 14px;cursor:pointer;font-size:0.85rem;color:#8aaccc;transition:all 0.18s;text-align:left;font-family:'Rajdhani',sans-serif;width:100%;}
+.quiz-opt:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,0.06);}
+.quiz-opt.correct{border-color:var(--voltage);background:rgba(102,187,106,0.1);color:var(--voltage);}
+.quiz-opt.wrong{border-color:var(--accent2);background:rgba(255,77,109,0.1);color:var(--accent2);}
+.quiz-feedback{padding:11px;border-radius:8px;font-size:0.85rem;margin-bottom:11px;display:none;line-height:1.6;}
+.quiz-feedback.ok{background:rgba(102,187,106,0.1);border:1px solid var(--voltage);color:var(--voltage);}
+.quiz-feedback.fail{background:rgba(255,77,109,0.1);border:1px solid var(--accent2);color:var(--accent2);}
+.quiz-progress{font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:#5fa0c0;margin-bottom:13px;}
+.score-box{text-align:center;padding:28px;}
+.score-big{font-family:'Orbitron',monospace;font-size:2.8rem;font-weight:900;color:var(--accent);text-shadow:0 0 30px rgba(0,229,255,0.6);}
+.tooltip{position:fixed;background:rgba(5,10,20,0.96);border:1px solid var(--accent);border-radius:6px;padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:0.66rem;color:var(--accent);pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:999;white-space:nowrap;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:#050a12;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ HALL EFFECT — ADVANCED SIMULATOR</h1>
+  <p>SIMULASI INTERAKTIF EFEK HALL PADA KONDUKTOR &amp; SEMIKONDUKTOR</p>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('sim',this)">🔬 Simulasi</button>
+  <button class="tab-btn" onclick="switchTab('graph',this)">📈 Grafik</button>
+  <button class="tab-btn" onclick="switchTab('edu',this)">📚 Edukasi</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">🎯 Quiz</button>
+</div>
+
+<!-- ═══ TAB SIMULASI ═══ -->
+<div id="tab-sim" class="tab-page active">
+<div class="main-layout">
+  <div class="panel">
+    <div class="panel-title">⚙ Parameter</div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Arus (I) <span id="lblI">3.0</span> A</div>
+      <input type="range" id="sliderI" min="0" max="6" step="0.1" value="3">
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Medan B <span id="lblB">1.00</span> T</div>
+      <input type="range" id="sliderB" min="0" max="2" step="0.05" value="1">
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Rapat Pembawa <span id="lblN">6</span></div>
+      <input type="range" id="sliderN" min="2" max="14" step="1" value="6">
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Material</div>
+      <select id="selMat">
+        <option value="cu">🔵 Tembaga (n-type)</option>
+        <option value="si">🔴 Silikon (p-type)</option>
+        <option value="ge">🟢 Germanium</option>
+        <option value="gaas">🟣 GaAs (semi)</option>
+      </select>
+    </div>
+    <div class="toggle-row">Balik Arah B <label class="toggle"><input type="checkbox" id="flipB"><span class="slider-sw"></span></label></div>
+    <div class="toggle-row">Balik Arah I <label class="toggle"><input type="checkbox" id="flipI"><span class="slider-sw"></span></label></div>
+    <div class="toggle-row">Tampilkan Gaya F <label class="toggle"><input type="checkbox" id="showF" checked><span class="slider-sw"></span></label></div>
+    <div class="toggle-row">Tampilkan Trail <label class="toggle"><input type="checkbox" id="showTrail"><span class="slider-sw"></span></label></div>
+    <div class="toggle-row">Mode 3D Isometrik <label class="toggle"><input type="checkbox" id="mode3d"><span class="slider-sw"></span></label></div>
+    <div class="btn-row">
+      <button id="btnPlay" class="active" onclick="setPlay(true)">▶ PLAY</button>
+      <button id="btnPause" onclick="setPlay(false)">⏸ PAUSE</button>
+    </div>
+    <div class="btn-row" style="margin-top:6px">
+      <button class="danger" onclick="doReset()">↺ RESET</button>
+      <button class="purple" onclick="doSnapshot()">📸 SNAP</button>
+    </div>
+    <div id="snapMsg" style="font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#66bb6a;margin-top:5px;display:none;">✓ Snapshot direkam ke grafik!</div>
+  </div>
+
+  <div class="canvas-area">
+    <canvas id="simCanvas" width="640" height="390"></canvas>
+    <div class="info-row">
+      <div class="info-chip">F = <b id="chipF">0.00</b> N</div>
+      <div class="info-chip">V<sub>H</sub> = <b id="chipVH">0.00</b> mV</div>
+      <div class="info-chip">R<sub>H</sub> = <b id="chipRH">0.00</b></div>
+      <div class="info-chip">Status: <b id="chipStatus" style="color:#66bb6a">RUNNING</b></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">📊 Readings</div>
+    <div class="meter-box">
+      <div class="meter-label">Tegangan Hall V<sub>H</sub></div>
+      <div class="meter-val volt" id="mVH">0.00 mV</div>
+      <div class="meter-bar"><div class="meter-bar-fill" id="barVH" style="width:0%;background:var(--voltage)"></div></div>
+    </div>
+    <div class="meter-box">
+      <div class="meter-label">Gaya Lorentz F</div>
+      <div class="meter-val" id="mF">0.00 N</div>
+      <div class="meter-bar"><div class="meter-bar-fill" id="barF" style="width:0%"></div></div>
+    </div>
+    <div class="meter-box">
+      <div class="meter-label">Akumulasi Muatan</div>
+      <div class="meter-val red" id="mQ">0.00 fC</div>
+      <div class="meter-bar"><div class="meter-bar-fill" id="barQ" style="width:0%;background:var(--accent2)"></div></div>
+    </div>
+    <div class="meter-box">
+      <div class="meter-label">Kecepatan Drift v<sub>d</sub></div>
+      <div class="meter-val" id="mVd">0.00 m/s</div>
+      <div class="meter-bar"><div class="meter-bar-fill" id="barVd" style="width:0%"></div></div>
+    </div>
+    <div class="meter-box">
+      <div class="meter-label">Koef. Hall R<sub>H</sub></div>
+      <div class="meter-val" id="mRH" style="font-size:0.9rem">0.00 m³/C</div>
+    </div>
+    <div class="panel-title" style="margin-top:9px">🔵 Legenda</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4fc3f7;color:#4fc3f7"></div> Elektron (e⁻)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef5350;color:#ef5350"></div> Hole (+)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d;color:#ff4d6d"></div> Magnet N</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#457b9d;color:#457b9d"></div> Magnet S</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#66bb6a;color:#66bb6a"></div> Voltmeter V<sub>H</sub></div>
+    <div class="formula">
+      <div><span class="sym">V<sub>H</sub></span><span class="eq"> = </span>IB/ned</div>
+      <div><span class="sym">F</span><span class="eq"> = </span>q(v×B)</div>
+      <div><span class="sym">R<sub>H</sub></span><span class="eq"> = </span>1/nq</div>
+      <div><span class="sym">θ<sub>H</sub></span><span class="eq"> = </span>arctan(μB)</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB GRAFIK ═══ -->
+<div id="tab-graph" class="tab-page">
+<div class="graph-layout">
+  <div class="panel">
+    <div class="panel-title">📈 Osiloskop — V<sub>H</sub>, I, F vs Waktu</div>
+    <canvas id="oscCanvas" width="480" height="175"></canvas>
+    <div style="display:flex;gap:10px;margin-top:7px">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#00e5ff">■ V<sub>H</sub></span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#ffe066">■ I</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#b388ff">■ F</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📊 Kurva Hall — V<sub>H</sub> vs B</div>
+    <canvas id="graphCanvas" width="480" height="175"></canvas>
+    <div style="margin-top:7px;font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#5fa0c0">
+      Teori (garis putus) vs Snapshot (titik) | <span id="graphSlope" style="color:var(--accent)">slope: —</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🌀 Diagram Fasa — V<sub>H</sub> vs I</div>
+    <canvas id="phaseCanvas" width="480" height="175"></canvas>
+    <div style="margin-top:7px;font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#5fa0c0">Lissajous — hubungan V<sub>H</sub> &amp; arus</div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📉 Histogram Distribusi Muatan Y</div>
+    <canvas id="histCanvas" width="480" height="175"></canvas>
+    <div style="margin-top:7px;font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:#5fa0c0">Distribusi posisi-Y partikel dalam konduktor</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB EDUKASI ═══ -->
+<div id="tab-edu" class="tab-page">
+<div class="edu-layout">
+  <div class="edu-card">
+    <h3>⚡ Apa itu Efek Hall?</h3>
+    <p>Efek Hall ditemukan oleh <span class="highlight">Edwin Hall</span> pada tahun 1879. Ketika arus listrik mengalir melalui konduktor dalam medan magnet tegak lurus, muncul tegangan transversal di sisi konduktor.</p>
+    <p>Tegangan ini disebut <span class="highlight">Tegangan Hall (V<sub>H</sub>)</span> dan terjadi akibat gaya Lorentz yang mendorong pembawa muatan ke satu sisi konduktor hingga tercapai kesetimbangan.</p>
+    <div class="formula" style="margin-top:10px">
+      <div><span class="sym">V<sub>H</sub></span><span class="eq"> = </span>(I · B) / (n · e · d)</div>
+      <div style="font-size:0.68rem;color:#4d9fcc;margin-top:2px">I=Arus, B=Medan, n=rapat muatan, e=muatan elektron, d=tebal</div>
+    </div>
+  </div>
+  <div class="edu-card">
+    <h3>🔬 Langkah-Langkah Proses</h3>
+    <div class="step-box"><div class="step-num">LANGKAH 01</div><div class="step-text">Arus listrik I mengalir sepanjang konduktor (arah +X). Elektron bergerak berlawanan arah arus.</div></div>
+    <div class="step-box"><div class="step-num">LANGKAH 02</div><div class="step-text">Medan magnet B diterapkan tegak lurus (arah +Z, masuk halaman ⊗).</div></div>
+    <div class="step-box"><div class="step-num">LANGKAH 03</div><div class="step-text"><span class="highlight">Gaya Lorentz</span> F = qv×B mendorong pembawa muatan ke sisi atas atau bawah konduktor.</div></div>
+    <div class="step-box"><div class="step-num">LANGKAH 04</div><div class="step-text">Akumulasi muatan menciptakan <span class="highlight">medan Hall (E<sub>H</sub>)</span> yang melawan gaya Lorentz hingga F<sub>E</sub> = F<sub>B</sub>.</div></div>
+    <div class="step-box"><div class="step-num">LANGKAH 05</div><div class="step-text">Beda potensial V<sub>H</sub> terukur antara dua sisi dengan voltmeter.</div></div>
+  </div>
+  <div class="edu-card">
+    <h3>🧲 n-type vs p-type</h3>
+    <p><span class="highlight">Semikonduktor n-type</span>: pembawa mayoritas adalah <span style="color:#4fc3f7">elektron (e⁻)</span>. Terdefleksi ke sisi negatif → V<sub>H</sub> negatif.</p>
+    <p><span class="highlight">Semikonduktor p-type</span>: pembawa mayoritas adalah <span style="color:#ef5350">hole (+)</span>. Terdefleksi ke sisi positif → V<sub>H</sub> positif.</p>
+    <p>Tanda V<sub>H</sub> langsung menentukan <span class="highlight">tipe pembawa</span> tanpa perlu analisis kimia!</p>
+    <div style="margin-top:11px;display:flex;gap:7px;flex-wrap:wrap">
+      <span class="mat-badge mat-n">n-type: R<sub>H</sub> &lt; 0</span>
+      <span class="mat-badge mat-p">p-type: R<sub>H</sub> &gt; 0</span>
+      <span class="mat-badge mat-m">Logam: |R<sub>H</sub>| kecil</span>
+    </div>
+  </div>
+  <div class="edu-card">
+    <h3>🛰 Aplikasi Nyata</h3>
+    <ul>
+      <li>Sensor posisi &amp; kecepatan pada motor listrik &amp; EV</li>
+      <li>Pengukuran arus tanpa kontak (clamp meter Hall)</li>
+      <li>Penentuan tipe &amp; konsentrasi pembawa semikonduktor</li>
+      <li>Kompas elektronik &amp; magnetometer smartphone</li>
+      <li>Efek Hall Kuantum → standar R internasional R<sub>K</sub> ≈ 25812 Ω</li>
+      <li>Hard disk — sensor posisi kepala baca/tulis</li>
+      <li>Efek Hall Anomali → topologi material kuantum</li>
+    </ul>
+    <div class="formula" style="margin-top:11px">
+      <div><span class="sym">R<sub>H</sub></span><span class="eq"> = </span>1/(nq) [m³/C]</div>
+      <div><span class="sym">μ</span><span class="eq"> = </span>|R<sub>H</sub>| · σ [m²/Vs]</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB QUIZ ═══ -->
+<div id="tab-quiz" class="tab-page">
+<div class="quiz-layout">
+  <div class="quiz-card">
+    <div id="quizBody">
+      <div class="quiz-progress">Soal <span id="qNum">1</span>/<span id="qTotal">8</span> &nbsp;|&nbsp; Skor: <span id="qScore" style="color:var(--accent)">0</span></div>
+      <div class="quiz-q" id="quizQ"></div>
+      <div class="quiz-options" id="quizOpts"></div>
+      <div class="quiz-feedback" id="quizFB"></div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button id="btnNext" style="flex:0;padding:8px 20px" onclick="nextQ()">BERIKUTNYA →</button>
+      </div>
+    </div>
+    <div id="quizDone" class="score-box" style="display:none">
+      <div class="score-big" id="finalScore">0/8</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:#5fa0c0;margin-top:9px" id="finalMsg"></div>
+      <div class="btn-row" style="justify-content:center;margin-top:18px">
+        <button onclick="startQuiz()" style="flex:0;padding:9px 26px">↺ ULANGI QUIZ</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ─── TAB ───
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='quiz') startQuiz();
+}
+
+// ─── SIMULATION ───
+const canvas=document.getElementById('simCanvas');
+const ctx=canvas.getContext('2d');
+const CW=canvas.width,CH=canvas.height;
+let running=true,t=0,I=3,B=1,N=6;
+let flipB=false,flipI=false,showF=true,showTrail=false,mode3d=false;
+let VH=0,accCharge=0,particles=[],graphPoints=[];
+const MAX_HIST=280;
+let histVH=[],histI=[],histF=[];
+
+const MATERIALS={
+  cu:{name:'Tembaga',type:'n',RHfact:0.0006},
+  si:{name:'Silikon',type:'p',RHfact:0.0045},
+  ge:{name:'Germanium',type:'m',RHfact:0.0024},
+  gaas:{name:'GaAs',type:'n',RHfact:0.007}
+};
+let curMat='cu';
+const condX=75,condY=112,condW=CW-155,condH=150;
+
+function createParticles(){
+  particles=[];
+  const mat=MATERIALS[curMat];
+  for(let i=0;i<N*3;i++){
+    particles.push({
+      x:condX+Math.random()*condW,
+      y:condY+16+Math.random()*(condH-32),
+      vx:0,vy:0,
+      type:mat.type==='p'?'h':mat.type==='m'?(Math.random()<0.5?'e':'h'):'e',
+      phase:Math.random()*Math.PI*2,
+      size:6+Math.random()*3,
+      trail:[]
+    });
+  }
+}
+createParticles();
+
+document.getElementById('sliderI').oninput=e=>{I=+e.target.value;document.getElementById('lblI').textContent=I.toFixed(1);};
+document.getElementById('sliderB').oninput=e=>{B=+e.target.value;document.getElementById('lblB').textContent=B.toFixed(2);};
+document.getElementById('sliderN').oninput=e=>{N=+e.target.value;document.getElementById('lblN').textContent=N;createParticles();};
+document.getElementById('flipB').onchange=e=>flipB=e.target.checked;
+document.getElementById('flipI').onchange=e=>flipI=e.target.checked;
+document.getElementById('showF').onchange=e=>showF=e.target.checked;
+document.getElementById('showTrail').onchange=e=>{showTrail=e.target.checked;if(!showTrail)particles.forEach(p=>p.trail=[]);};
+document.getElementById('mode3d').onchange=e=>mode3d=e.target.checked;
+document.getElementById('selMat').onchange=e=>{curMat=e.target.value;createParticles();};
+
+function setPlay(v){
+  running=v;
+  document.getElementById('btnPlay').classList.toggle('active',v);
+  document.getElementById('btnPause').classList.toggle('active',!v);
+  document.getElementById('chipStatus').textContent=v?'RUNNING':'PAUSED';
+  document.getElementById('chipStatus').style.color=v?'#66bb6a':'#ffe066';
+}
+function doReset(){createParticles();t=0;accCharge=0;VH=0;histVH=[];histI=[];histF=[];graphPoints=[];}
+function doSnapshot(){
+  graphPoints.push({B:B,VH:Math.abs(VH)*1000});
+  const msg=document.getElementById('snapMsg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',1800);
+}
+
+// ─── DRAW HELPERS ───
+function arrow(x1,y1,x2,y2,col,lw=2,glow=10,label=''){
+  const ang=Math.atan2(y2-y1,x2-x1),len=Math.hypot(x2-x1,y2-y1);
+  if(len<3)return;
+  ctx.save();ctx.shadowColor=col;ctx.shadowBlur=glow;ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-11*Math.cos(ang-.4),y2-11*Math.sin(ang-.4));ctx.lineTo(x2-11*Math.cos(ang+.4),y2-11*Math.sin(ang+.4));ctx.closePath();ctx.fill();
+  if(label){ctx.font='600 10px Rajdhani,sans-serif';ctx.textAlign='center';ctx.fillText(label,(x1+x2)/2+10,(y1+y2)/2-9);}
+  ctx.restore();
+}
+
+function drawBField(dir){
+  const rows=5,cols=10;
+  const sx=condX+20,sy=condY+14;
+  const dx=(condW-40)/(cols-1),dy=(condH-28)/(rows-1);
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const px=sx+c*dx,py=sy+r*dy;
+    ctx.save();ctx.globalAlpha=0.48;ctx.strokeStyle='#1e4d7a';ctx.lineWidth=1.1;
+    if(dir>0){
+      ctx.beginPath();ctx.moveTo(px-5,py-5);ctx.lineTo(px+5,py+5);ctx.moveTo(px+5,py-5);ctx.lineTo(px-5,py+5);ctx.stroke();
+      ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);ctx.stroke();
+    }else{
+      ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=0.72;ctx.fillStyle='#4fc3f7';ctx.beginPath();ctx.arc(px,py,2.8,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawMagnet(x,y,w,h,label){
+  const isN=label==='N';
+  const g=ctx.createLinearGradient(x,y,x+w,y);
+  g.addColorStop(0,isN?'#b71c1c':'#0d47a1');g.addColorStop(1,isN?'#ef5350':'#42a5f5');
+  ctx.save();ctx.shadowColor=isN?'#ef5350':'#42a5f5';ctx.shadowBlur=20;
+  ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 14px Orbitron,monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x+w/2,y+h/2);ctx.restore();
+}
+
+function drawParticle(p){
+  const isE=p.type==='e',col=isE?'#4fc3f7':'#ef5350';
+  if(showTrail&&p.trail.length>1){
+    ctx.save();
+    for(let i=1;i<p.trail.length;i++){
+      ctx.globalAlpha=(i/p.trail.length)*0.3;ctx.strokeStyle=col;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(p.trail[i-1].x,p.trail[i-1].y);ctx.lineTo(p.trail[i].x,p.trail[i].y);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  ctx.save();ctx.shadowColor=col;ctx.shadowBlur=15;
+  const g=ctx.createRadialGradient(p.x-p.size*.3,p.y-p.size*.3,.7,p.x,p.y,p.size);
+  g.addColorStop(0,'#fff');g.addColorStop(.35,col);g.addColorStop(1,col+'33');
+  ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle=col;ctx.lineWidth=1.1;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font=`bold ${isE?9:10}px Share Tech Mono,monospace`;
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(isE?'e⁻':'+',p.x,p.y);
+  ctx.restore();
+}
+
+function drawVoltmeter(v){
+  const mx=condX+condW+36,my=condY+condH/2;
+  ctx.save();ctx.shadowColor='#66bb6a';ctx.shadowBlur=13;ctx.strokeStyle='#66bb6a55';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(condX+condW,condY+10);ctx.lineTo(mx-19,condY+10);ctx.lineTo(mx-19,my-20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(condX+condW,condY+condH-10);ctx.lineTo(mx-19,condY+condH-10);ctx.lineTo(mx-19,my+20);ctx.stroke();
+  ctx.beginPath();ctx.arc(mx,my,21,0,Math.PI*2);ctx.fillStyle='#030c07';ctx.fill();ctx.strokeStyle='#66bb6a';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#66bb6a';ctx.font='bold 7px Orbitron,monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('VH',mx,my-6);
+  ctx.font='600 6.5px Share Tech Mono,monospace';ctx.fillStyle='#a5d6a7';ctx.fillText((v*1000).toFixed(2)+'mV',mx,my+7);
+  ctx.restore();
+}
+
+function drawCurrentSource(dir){
+  const sy=condY+condH+26,sx=condX,ex=condX+condW;
+  ctx.save();ctx.shadowColor='#ffe066';ctx.shadowBlur=9;ctx.strokeStyle='#ffe06677';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(sx,condY);ctx.lineTo(sx,sy);ctx.lineTo(ex,sy);ctx.lineTo(ex,condY+condH);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ffe066';ctx.font='600 9.5px Share Tech Mono,monospace';ctx.textAlign='center';ctx.fillText('I = '+I.toFixed(1)+' A',(sx+ex)/2,sy+13);
+  const ax=dir>0?(sx+ex)/2-22:(sx+ex)/2+22,bx=dir>0?(sx+ex)/2+22:(sx+ex)/2-22;
+  arrow(ax,sy,bx,sy,'#ffe066',2,7);
+  ctx.restore();
+}
+
+function draw3DOverlay(){
+  const Bdir=flipB?-1:1;
+  ctx.save();ctx.globalAlpha=0.4;
+  for(let xi=0;xi<3;xi++)for(let yi=0;yi<2;yi++){
+    const bx=condX+50+xi*110,by=condY+40+yi*55;
+    const az=Bdir>0?28:-28;
+    arrow(bx,by,bx+az*.5,by+az*.7,'#4fc3f7',1.2,6);
+  }
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+  ctx.save();ctx.strokeStyle='rgba(0,229,255,0.022)';ctx.lineWidth=1;
+  for(let x=0;x<CW;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CH);ctx.stroke();}
+  for(let y=0;y<CH;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}
+  ctx.restore();
+
+  const Bdir=flipB?-1:1,Idir=flipI?-1:1;
+  const cg=ctx.createLinearGradient(condX,condY,condX,condY+condH);
+  cg.addColorStop(0,'#0e2438');cg.addColorStop(.5,'#091a2c');cg.addColorStop(1,'#0e2438');
+  ctx.fillStyle=cg;ctx.beginPath();ctx.roundRect(condX,condY,condW,condH,10);ctx.fill();
+
+  drawBField(Bdir);
+
+  ctx.save();ctx.shadowColor='#00e5ff';ctx.shadowBlur=20;ctx.strokeStyle='rgba(0,229,255,0.28)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(condX,condY,condW,condH,10);ctx.stroke();ctx.restore();
+
+  // Accumulation edge
+  const acc=Math.max(0,Math.min(1,Math.abs(VH)*9));
+  if(acc>0.04){
+    const tc=Idir*Bdir>0?'rgba(239,83,80,':'rgba(79,195,247,';
+    const bc=Idir*Bdir>0?'rgba(79,195,247,':'rgba(239,83,80,';
+    ctx.save();ctx.lineWidth=2+acc*4;ctx.shadowBlur=18*acc;
+    ctx.strokeStyle=tc+acc*0.85+')';ctx.shadowColor=tc+'.8)';
+    ctx.beginPath();ctx.moveTo(condX+4,condY+5);ctx.lineTo(condX+condW-4,condY+5);ctx.stroke();
+    ctx.strokeStyle=bc+acc*0.85+')';ctx.shadowColor=bc+'.8)';
+    ctx.beginPath();ctx.moveTo(condX+4,condY+condH-5);ctx.lineTo(condX+condW-4,condY+condH-5);ctx.stroke();
+    ctx.restore();
+  }
+
+  drawMagnet(condX+condW/2-22,condY-57,44,51,flipB?'S':'N');
+  drawMagnet(condX+condW/2-22,condY+condH+5,44,51,flipB?'N':'S');
+
+  ctx.save();ctx.fillStyle='rgba(79,195,247,0.65)';ctx.font='500 9.5px Share Tech Mono,monospace';ctx.textAlign='left';
+  ctx.fillText('B='+B.toFixed(2)+'T '+(Bdir>0?'⊗ masuk':'⊙ keluar'),condX+6,condY-9);ctx.restore();
+
+  particles.forEach(p=>drawParticle(p));
+
+  if(showF){
+    particles.forEach(p=>{
+      const fDir=(p.type==='e'?-1:1)*Bdir*Idir;
+      const fy=fDir*Math.min(B*I*9,33);
+      if(Math.abs(fy)>3)arrow(p.x,p.y,p.x,p.y+fy,'#ffe06666',1.4,4);
+    });
+  }
+
+  if(mode3d)draw3DOverlay();
+  drawCurrentSource(Idir);
+
+  const ax1=condX+16,ax2=condX+condW-16;
+  arrow(Idir>0?ax1:ax2,condY+condH/2,Idir>0?ax2:ax1,condY+condH/2,'#ffe066',2.5,15,'I');
+  drawVoltmeter(VH);
+
+  if(acc>0.12){
+    const edir=Idir*Bdir>0?1:-1;
+    arrow(condX+condW/2,condY+10,condX+condW/2,condY+condH-10,edir>0?'rgba(239,83,80,0.45)':'rgba(79,195,247,0.45)',1.4,7,'E_H');
+  }
+
+  const mat=MATERIALS[curMat];
+  ctx.save();ctx.fillStyle='rgba(0,229,255,0.38)';ctx.font='500 9.5px Rajdhani,sans-serif';ctx.textAlign='center';
+  ctx.fillText(mat.name+' ('+(mat.type==='n'?'n-type':mat.type==='p'?'p-type':'logam')+')',condX+condW/2,condY-7);ctx.restore();
+}
+
+// ─── PHYSICS ───
+function updatePhysics(dt){
+  if(!running)return;t+=dt;
+  const Bdir=flipB?-1:1,Idir=flipI?-1:1;
+  const mat=MATERIALS[curMat],speed=(I/6)*52,midY=condY+condH/2;
+  particles.forEach(p=>{
+    const sign=p.type==='e'?-1:1;
+    p.x+=Idir*sign*speed*dt;
+    const fDir=(p.type==='e'?-1:1)*Bdir*Idir;
+    p.vy+=fDir*B*speed*0.72*dt;p.vy*=0.91;p.y+=p.vy;
+    p.vy+=(-( p.y-midY)*0.044*(1+Math.abs(VH)*0.55))*dt*60;
+    if(p.x<condX+p.size)p.x=condX+condW-p.size;
+    if(p.x>condX+condW-p.size)p.x=condX+p.size;
+    const yT=condY+p.size+2,yB=condY+condH-p.size-2;
+    if(p.y<yT){p.y=yT;p.vy=Math.abs(p.vy)*0.35;}
+    if(p.y>yB){p.y=yB;p.vy=-Math.abs(p.vy)*0.35;}
+    p.y+=Math.sin(t*1.7+p.phase)*0.22;
+    if(showTrail){p.trail.push({x:p.x,y:p.y});if(p.trail.length>20)p.trail.shift();}
+  });
+
+  const rhSign=mat.type==='p'?1:mat.type==='n'?-1:0.4;
+  const targetVH=(I*B*0.04*mat.RHfact/0.006)/Math.max(N*0.18,0.1)*rhSign;
+  const sign=Bdir*Idir;
+  VH+=(sign*targetVH*(I>0.01?1:0)-VH)*dt*2.2;
+  accCharge=Math.abs(VH)*N*1.3;
+  const vd=I/Math.max(N*0.3,0.1),force=Math.abs(I*B*0.1),RH=VH/(Math.max(I,.01)*Math.max(B,.01));
+  const VHmv=VH*1000;
+
+  document.getElementById('mVH').textContent=VHmv.toFixed(2)+' mV';
+  document.getElementById('mF').textContent=force.toFixed(4)+' N';
+  document.getElementById('mQ').textContent=(accCharge*100).toFixed(2)+' fC';
+  document.getElementById('mVd').textContent=vd.toFixed(2)+' m/s';
+  document.getElementById('mRH').textContent=RH.toFixed(4)+' m³/C';
+  document.getElementById('chipF').textContent=force.toFixed(4);
+  document.getElementById('chipVH').textContent=VHmv.toFixed(2);
+  document.getElementById('chipRH').textContent=RH.toFixed(3);
+  document.getElementById('barVH').style.width=Math.min(100,Math.abs(VHmv)/0.6*100)+'%';
+  document.getElementById('barF').style.width=Math.min(100,force/1.2*100)+'%';
+  document.getElementById('barQ').style.width=Math.min(100,accCharge*28)+'%';
+  document.getElementById('barVd').style.width=Math.min(100,vd/20*100)+'%';
+
+  if(running){histVH.push(VHmv);histI.push(I);histF.push(force);
+    if(histVH.length>MAX_HIST){histVH.shift();histI.shift();histF.shift();}}
+}
+
+// ─── GRAPHS ───
+const oscCanvas=document.getElementById('oscCanvas');
+const octx=oscCanvas.getContext('2d');
+const graphCanvas=document.getElementById('graphCanvas');
+const gctx=graphCanvas.getContext('2d');
+const phaseCanvas=document.getElementById('phaseCanvas');
+const pctx=phaseCanvas.getContext('2d');
+const histCanvas=document.getElementById('histCanvas');
+const hctx=histCanvas.getContext('2d');
+
+function clearGraph(c,cx){
+  cx.fillStyle='#030810';cx.fillRect(0,0,c.width,c.height);
+  cx.strokeStyle='rgba(0,229,255,0.06)';cx.lineWidth=1;
+  for(let x=0;x<c.width;x+=40){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,c.height);cx.stroke();}
+  for(let y=0;y<c.height;y+=30){cx.beginPath();cx.moveTo(0,y);cx.lineTo(c.width,y);cx.stroke();}
+}
+
+function drawOscilloscope(){
+  const W=oscCanvas.width,H=oscCanvas.height,mid=H/2;
+  clearGraph(oscCanvas,octx);
+  function plotLine(data,col,scale){
+    if(data.length<2)return;
+    octx.save();octx.strokeStyle=col;octx.lineWidth=1.5;octx.shadowColor=col;octx.shadowBlur=7;
+    octx.beginPath();
+    data.forEach((v,i)=>{const x=(i/MAX_HIST)*W,y=mid-v*scale;i===0?octx.moveTo(x,y):octx.lineTo(x,y);});
+    octx.stroke();octx.restore();
+  }
+  // Midline
+  octx.save();octx.strokeStyle='rgba(255,255,255,0.07)';octx.lineWidth=1;octx.setLineDash([4,4]);
+  octx.beginPath();octx.moveTo(0,mid);octx.lineTo(W,mid);octx.stroke();octx.setLineDash([]);octx.restore();
+  plotLine(histVH,'#00e5ff',16);
+  plotLine(histI,'#ffe06688',7);
+  plotLine(histF,'#b388ff88',50);
+  // Scan cursor
+  const cur=(histVH.length/MAX_HIST)*W;
+  octx.save();octx.strokeStyle='rgba(0,229,255,0.35)';octx.lineWidth=1;
+  octx.beginPath();octx.moveTo(cur,0);octx.lineTo(cur,H);octx.stroke();octx.restore();
+}
+
+function drawHallCurve(){
+  const W=graphCanvas.width,H=graphCanvas.height;
+  clearGraph(graphCanvas,gctx);
+  gctx.save();
+  // Axes
+  gctx.strokeStyle='rgba(255,255,255,0.13)';gctx.lineWidth=1;
+  gctx.beginPath();gctx.moveTo(42,8);gctx.lineTo(42,H-24);gctx.lineTo(W-8,H-24);gctx.stroke();
+  gctx.fillStyle='#4d9fcc';gctx.font='8.5px Share Tech Mono,monospace';
+  gctx.textAlign='center';gctx.fillText('B (T)',W/2,H-7);
+  gctx.save();gctx.translate(13,H/2);gctx.rotate(-Math.PI/2);gctx.fillText('VH (mV)',0,0);gctx.restore();
+  // Theoretical line
+  const mat=MATERIALS[curMat];
+  gctx.strokeStyle='rgba(0,229,255,0.22)';gctx.lineWidth=1.2;gctx.setLineDash([4,4]);
+  gctx.beginPath();
+  for(let b=0;b<=2;b+=0.04){
+    const vh=(I*b*0.04*mat.RHfact/0.006)/Math.max(N*0.18,0.1)*1000;
+    const px=42+(b/2)*(W-54),py=(H-24)-Math.min(Math.max(vh*9,-(H-32)/2),(H-32)/2);
+    b===0?gctx.moveTo(px,py):gctx.lineTo(px,py);
+  }
+  gctx.stroke();gctx.setLineDash([]);
+  // Snapshots
+  graphPoints.forEach(pt=>{
+    const px=42+(pt.B/2)*(W-54),py=(H-24)-pt.VH*9;
+    gctx.beginPath();gctx.arc(px,Math.max(8,Math.min(H-26,py)),5,0,Math.PI*2);
+    gctx.fillStyle='#ffe066';gctx.fill();gctx.strokeStyle='#fff';gctx.lineWidth=1;gctx.stroke();
+  });
+  if(graphPoints.length>=2){
+    const s=(graphPoints[graphPoints.length-1].VH-graphPoints[0].VH)/(graphPoints[graphPoints.length-1].B-graphPoints[0].B||0.001);
+    document.getElementById('graphSlope').textContent='slope: '+s.toFixed(2)+' mV/T';
+  }
+  // Live point
+  const px=42+(B/2)*(W-54),py=(H-24)-Math.abs(VH)*9000;
+  gctx.beginPath();gctx.arc(px,Math.max(8,Math.min(H-26,py)),7,0,Math.PI*2);
+  gctx.fillStyle='rgba(0,229,255,0.25)';gctx.fill();gctx.strokeStyle='#00e5ff';gctx.lineWidth=2;gctx.stroke();
+  gctx.restore();
+}
+
+function drawPhase(){
+  const W=phaseCanvas.width,H=phaseCanvas.height;
+  clearGraph(phaseCanvas,pctx);
+  const n=histVH.length;if(n<2)return;
+  pctx.save();
+  for(let i=1;i<n;i++){
+    const a=i/n;
+    pctx.strokeStyle=`rgba(179,136,255,${a*0.75})`;pctx.lineWidth=1+a;
+    pctx.beginPath();pctx.moveTo((histI[i-1]/6)*W,H/2-histVH[i-1]*(H/2)/0.6);
+    pctx.lineTo((histI[i]/6)*W,H/2-histVH[i]*(H/2)/0.6);pctx.stroke();
+  }
+  pctx.restore();
+}
+
+function drawHistogram(){
+  const W=histCanvas.width,H=histCanvas.height;
+  clearGraph(histCanvas,hctx);
+  if(!particles.length)return;
+  const bins=18,counts=new Array(bins).fill(0);
+  particles.forEach(p=>{const b=Math.floor(((p.y-condY)/condH)*bins);if(b>=0&&b<bins)counts[b]++;});
+  const maxC=Math.max(...counts,1),bw=W/bins;
+  counts.forEach((c,i)=>{
+    const h=(c/maxC)*(H-18);
+    const g=hctx.createLinearGradient(0,H-h,0,H);
+    g.addColorStop(0,'rgba(0,229,255,0.85)');g.addColorStop(1,'rgba(0,229,255,0.18)');
+    hctx.fillStyle=g;hctx.fillRect(i*bw+1,H-h-9,bw-2,h);
+  });
+  hctx.save();hctx.strokeStyle='rgba(255,255,255,0.08)';hctx.lineWidth=1;hctx.setLineDash([3,4]);
+  hctx.beginPath();hctx.moveTo(W/2,0);hctx.lineTo(W/2,H);hctx.stroke();hctx.restore();
+  hctx.fillStyle='#5fa0c0';hctx.font='8px Share Tech Mono,monospace';hctx.textAlign='center';
+  hctx.fillText('TOP',W*.08,H-2);hctx.fillText('BOT',W*.92,H-2);
+}
+
+// ─── LOOP ───
+let last=null;
+function loop(ts){
+  if(!last)last=ts;
+  const dt=Math.min((ts-last)/1000,.05);last=ts;
+  updatePhysics(dt);draw();
+  if(document.getElementById('tab-graph').classList.contains('active')){
+    drawOscilloscope();drawHallCurve();drawPhase();drawHistogram();
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ─── TOOLTIP ───
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+  const mx=(e.clientX-rect.left)*sx,my=(e.clientY-rect.top)*sy;
+  const tip=document.getElementById('tooltip');
+  let hit=null;particles.forEach(p=>{if(Math.hypot(p.x-mx,p.y-my)<p.size+5)hit=p;});
+  if(hit){
+    tip.textContent=`${hit.type==='e'?'Elektron e⁻':'Hole +'} | vy=${hit.vy.toFixed(2)} | (${hit.x.toFixed(0)},${hit.y.toFixed(0)})`;
+    tip.style.left=(e.clientX+13)+'px';tip.style.top=(e.clientY-22)+'px';tip.style.opacity='1';
+  }else tip.style.opacity='0';
+});
+canvas.addEventListener('mouseleave',()=>document.getElementById('tooltip').style.opacity='0');
+
+// ─── QUIZ ───
+const QUESTIONS=[
+  {q:'Siapa penemu Efek Hall dan pada tahun berapa?',opts:['Michael Faraday, 1831','Edwin Hall, 1879','James Maxwell, 1873','Nikola Tesla, 1895'],ans:1,exp:'Edwin Hall menemukan efek ini pada 1879 saat meneliti gaya pada arus dalam medan magnet.'},
+  {q:'Gaya apakah yang menyebabkan pembawa muatan terdefleksi dalam Efek Hall?',opts:['Gaya Gravitasi','Gaya Coulomb','Gaya Lorentz','Gaya Ampere'],ans:2,exp:'Gaya Lorentz F = q(v × B) mendorong pembawa muatan ke sisi konduktor.'},
+  {q:'Jika I=2A, B=1T, n=5×10²⁸ m⁻³, e=1.6×10⁻¹⁹C, d=0.01m, berapa V_H?',opts:['2.5 μV','25 mV','0.25 mV','2.5 mV'],ans:0,exp:'VH = IB/(ned) = 2×1/(5×10²⁸×1.6×10⁻¹⁹×0.01) = 2.5 μV'},
+  {q:'Pada semikonduktor p-type, pembawa muatan mayoritas adalah...',opts:['Elektron','Foton','Hole (lubang)','Ion positif'],ans:2,exp:'Pada p-type, atom akseptor menciptakan "hole" sebagai pembawa muatan positif.'},
+  {q:'Tanda Tegangan Hall (V_H) dapat digunakan untuk menentukan...',opts:['Suhu konduktor','Tipe pembawa muatan (n atau p)','Resistansi total','Kapasitansi material'],ans:1,exp:'Polaritas VH menentukan apakah pembawa mayoritas adalah elektron (n-type) atau hole (p-type).'},
+  {q:'Rumus Koefisien Hall (R_H) yang benar adalah...',opts:['R_H = nq','R_H = 1/(nq)','R_H = B/(nI)','R_H = VH·d/I'],ans:1,exp:'Koefisien Hall R_H = 1/(nq), n=konsentrasi pembawa, q=muatan elektron.'},
+  {q:'Efek Hall Kuantum digunakan sebagai...',opts:['Standar tegangan','Standar resistansi internasional R_K','Pengukur suhu','Pengukur medan magnet'],ans:1,exp:'R_K = h/e² ≈ 25812.8 Ω digunakan sebagai standar resistansi internasional sejak 1990.'},
+  {q:'Jika B dinaikkan 2×, apa yang terjadi pada V_H (semua variabel lain tetap)?',opts:['Tetap sama','Turun 2×','Naik 2×','Naik 4×'],ans:2,exp:'VH ∝ B secara linier, sehingga menaikkan B 2× akan menaikkan VH 2×.'},
+];
+
+let qIdx=0,qScore=0,qAnswered=false;
+function startQuiz(){
+  qIdx=0;qScore=0;qAnswered=false;
+  document.getElementById('quizBody').style.display='block';
+  document.getElementById('quizDone').style.display='none';
+  renderQ();
+}
+function renderQ(){
+  const q=QUESTIONS[qIdx];
+  document.getElementById('qNum').textContent=qIdx+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('qScore').textContent=qScore;
+  document.getElementById('quizQ').textContent=q.q;
+  document.getElementById('quizFB').style.display='none';
+  const opts=document.getElementById('quizOpts');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='quiz-opt';btn.textContent=o;btn.onclick=()=>answerQ(i);opts.appendChild(btn);});
+  document.getElementById('btnNext').style.display='none';
+  qAnswered=false;
+}
+function answerQ(i){
+  if(qAnswered)return;qAnswered=true;
+  const q=QUESTIONS[qIdx];
+  const opts=document.getElementById('quizOpts').querySelectorAll('.quiz-opt');
+  const fb=document.getElementById('quizFB');
+  opts[q.ans].classList.add('correct');
+  if(i===q.ans){qScore++;document.getElementById('qScore').textContent=qScore;fb.className='quiz-feedback ok';fb.textContent='✓ Benar! '+q.exp;}
+  else{opts[i].classList.add('wrong');fb.className='quiz-feedback fail';fb.textContent='✗ Salah. '+q.exp;}
+  fb.style.display='block';document.getElementById('btnNext').style.display='block';
+}
+function nextQ(){
+  qIdx++;
+  if(qIdx>=QUESTIONS.length){
+    document.getElementById('quizBody').style.display='none';
+    document.getElementById('quizDone').style.display='block';
+    document.getElementById('finalScore').textContent=qScore+'/'+QUESTIONS.length;
+    const pct=qScore/QUESTIONS.length;
+    document.getElementById('finalMsg').textContent=pct===1?'🏆 Sempurna! Anda menguasai Efek Hall!':pct>=.75?'🌟 Bagus sekali! Pemahaman sangat kuat.':pct>=.5?'📘 Cukup baik. Pelajari materi lagi.':'💡 Jangan menyerah! Baca tab Edukasi dulu.';
+  }else renderQ();
+}
+startQuiz();
+</script>
+</body>
+</html>
