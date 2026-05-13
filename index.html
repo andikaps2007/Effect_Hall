@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Simulasi interaktif Efek Hall pada medan magnet menggunakan HTML CSS dan JavaScript.">
+<meta name="theme-color" content="#00e5ff">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Andika Permana Saputra">
+
+<title>Hall Effect Simulator</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap');
+
+:root{
+--bg:#050a12;
+--panel:#0a1525;
+--accent:#00e5ff;
+--accent2:#ff4d6d;
+--text:#d7e7f7;
+--border:#12314f;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background:var(--bg);
+color:var(--text);
+font-family:'Rajdhani',sans-serif;
+overflow-x:hidden;
+min-height:100vh;
+background-image:
+linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+background-size:40px 40px;
+}
+
+header{
+padding:20px;
+text-align:center;
+}
+
+h1{
+font-family:'Orbitron',sans-serif;
+font-size:clamp(1.5rem,4vw,3rem);
+color:var(--accent);
+text-shadow:0 0 20px rgba(0,229,255,0.6);
+}
+
+.subtitle{
+margin-top:6px;
+color:#7eb9d6;
+font-size:0.9rem;
+}
+
+.wrapper{
+max-width:1200px;
+margin:auto;
+padding:15px;
+display:grid;
+grid-template-columns:260px 1fr 260px;
+gap:15px;
+}
+
+@media(max-width:950px){
+.wrapper{
+grid-template-columns:1fr;
+}
+}
+
+.panel{
+background:var(--panel);
+border:1px solid var(--border);
+border-radius:14px;
+padding:15px;
+box-shadow:0 0 25px rgba(0,229,255,0.06);
+}
+
+.panel-title{
+font-family:'Orbitron';
+font-size:0.75rem;
+margin-bottom:15px;
+color:var(--accent);
+letter-spacing:2px;
+text-transform:uppercase;
+}
+
+.control{
+margin-bottom:16px;
+}
+
+label{
+display:flex;
+justify-content:space-between;
+margin-bottom:6px;
+font-size:0.8rem;
+}
+
+input[type=range]{
+width:100%;
+}
+
+button{
+width:100%;
+padding:10px;
+background:transparent;
+color:var(--accent);
+border:1px solid var(--accent);
+border-radius:8px;
+cursor:pointer;
+font-family:'Orbitron';
+margin-top:8px;
+transition:0.2s;
+}
+
+button:hover{
+background:rgba(0,229,255,0.12);
+}
+
+.canvas-box{
+background:var(--panel);
+border:1px solid var(--border);
+border-radius:14px;
+padding:12px;
+}
+
+canvas{
+width:100%;
+border-radius:10px;
+border:1px solid rgba(0,229,255,0.15);
+background:#08111d;
+display:block;
+}
+
+.reading{
+background:#07111c;
+border:1px solid var(--border);
+padding:10px;
+border-radius:10px;
+margin-bottom:12px;
+}
+
+.reading small{
+color:#76a4c0;
+}
+
+.reading h2{
+margin-top:4px;
+color:var(--accent);
+font-size:1.2rem;
+}
+
+.info{
+margin-top:10px;
+font-size:0.85rem;
+line-height:1.7;
+color:#9ab7cb;
+}
+
+footer{
+text-align:center;
+padding:30px 15px;
+font-size:0.8rem;
+color:#6c92ad;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>⚡ HALL EFFECT SIMULATOR</h1>
+<div class="subtitle">Simulasi Interaktif Efek Hall pada Medan Magnet</div>
+</header>
+
+<div class="wrapper">
+
+<div class="panel">
+<div class="panel-title">Parameter</div>
+
+<div class="control">
+<label>Arus (A) <span id="valI">3.0</span></label>
+<input type="range" id="sliderI" min="0" max="6" step="0.1" value="3">
+</div>
+
+<div class="control">
+<label>Medan Magnet (T) <span id="valB">1.0</span></label>
+<input type="range" id="sliderB" min="0" max="2" step="0.05" value="1">
+</div>
+
+<div class="control">
+<label>Jumlah Partikel <span id="valN">10</span></label>
+<input type="range" id="sliderN" min="4" max="25" step="1" value="10">
+</div>
+
+<button onclick="toggleRun()">PLAY / PAUSE</button>
+<button onclick="resetSimulation()">RESET</button>
+<button onclick="saveSnapshot()">SNAPSHOT</button>
+</div>
+
+<div class="canvas-box">
+<canvas id="simCanvas"></canvas>
+<div class="info">
+Gunakan slider untuk mengubah besar arus listrik dan medan magnet. Elektron akan mengalami gaya Lorentz dan menghasilkan Tegangan Hall.
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-title">Readings</div>
+
+<div class="reading">
+<small>Tegangan Hall</small>
+<h2 id="vhVal">0.00 mV</h2>
+</div>
+
+<div class="reading">
+<small>Gaya Lorentz</small>
+<h2 id="forceVal">0.00 N</h2>
+</div>
+
+<div class="reading">
+<small>Kecepatan Drift</small>
+<h2 id="driftVal">0.00 m/s</h2>
+</div>
+
+<div class="reading">
+<small>Koefisien Hall</small>
+<h2 id="hallVal">0.00</h2>
+</div>
+</div>
+
+</div>
+
+<footer>
+Hall Effect Advanced Simulator • HTML CSS JavaScript • GitHub Pages Ready
+</footer>
+
+<script>
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+if (w < 2 * r) r = w / 2;
+if (h < 2 * r) r = h / 2;
+
+this.beginPath();
+this.moveTo(x + r, y);
+this.arcTo(x + w, y, x + w, y + h, r);
+this.arcTo(x + w, y + h, x, y + h, r);
+this.arcTo(x, y + h, x, y, r);
+this.arcTo(x, y, x + w, y, r);
+this.closePath();
+return this;
+};
+}
+
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+const DPR = window.devicePixelRatio || 1;
+
+canvas.width = 900 * DPR;
+canvas.height = 500 * DPR;
+ctx.scale(DPR, DPR);
+
+canvas.style.height = '500px';
+
+const CW = 900;
+const CH = 500;
+
+let running = true;
+let current = 3;
+let magnetic = 1;
+let count = 10;
+
+const particles = [];
+
+function createParticles(){
+particles.length = 0;
+
+for(let i=0;i<count;i++){
+particles.push({
+x:150 + Math.random()*600,
+y:170 + Math.random()*160,
+vx:2 + Math.random()*2,
+vy:0,
+r:8
+});
+}
+}
+
+createParticles();
+
+const sliderI = document.getElementById('sliderI');
+const sliderB = document.getElementById('sliderB');
+const sliderN = document.getElementById('sliderN');
+
+sliderI.oninput = e=>{
+current = Number(e.target.value);
+document.getElementById('valI').innerText = current.toFixed(1);
+}
+
+sliderB.oninput = e=>{
+magnetic = Number(e.target.value);
+document.getElementById('valB').innerText = magnetic.toFixed(2);
+}
+
+sliderN.oninput = e=>{
+count = Number(e.target.value);
+document.getElementById('valN').innerText = count;
+createParticles();
+}
+
+function toggleRun(){
+running = !running;
+}
+
+function resetSimulation(){
+createParticles();
+}
+
+function saveSnapshot(){
+const link = document.createElement('a');
+link.download = 'hall-effect.png';
+link.href = canvas.toDataURL();
+link.click();
+}
+
+function drawMagnet(){
+ctx.fillStyle = '#ff4d6d';
+ctx.fillRect(400,40,100,50);
+
+ctx.fillStyle = '#ffffff';
+ctx.font = 'bold 24px Orbitron';
+ctx.fillText('N',440,73);
+
+ctx.fillStyle = '#4fc3f7';
+ctx.fillRect(400,410,100,50);
+
+ctx.fillStyle = '#ffffff';
+ctx.fillText('S',440,443);
+}
+
+function drawConductor(){
+const grad = ctx.createLinearGradient(0,150,0,350);
+grad.addColorStop(0,'#17324d');
+grad.addColorStop(1,'#0d1e30');
+
+ctx.fillStyle = grad;
+ctx.roundRect(100,150,700,200,14);
+ctx.fill();
+
+ctx.strokeStyle = '#00e5ff';
+ctx.lineWidth = 2;
+ctx.stroke();
+}
+
+function drawField(){
+ctx.strokeStyle = 'rgba(0,229,255,0.4)';
+
+for(let y=180;y<330;y+=30){
+for(let x=150;x<760;x+=60){
+ctx.beginPath();
+ctx.arc(x,y,10,0,Math.PI*2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(x-5,y-5);
+ctx.lineTo(x+5,y+5);
+ctx.moveTo(x+5,y-5);
+ctx.lineTo(x-5,y+5);
+ctx.stroke();
+}
+}
+}
+
+function drawCurrentArrow(){
+ctx.strokeStyle = '#ffe066';
+ctx.fillStyle = '#ffe066';
+ctx.lineWidth = 3;
+
+ctx.beginPath();
+ctx.moveTo(150,250);
+ctx.lineTo(760,250);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(760,250);
+ctx.lineTo(735,235);
+ctx.lineTo(735,265);
+ctx.closePath();
+ctx.fill();
+
+ctx.font = '18px Orbitron';
+ctx.fillText('I',455,235);
+}
+
+function updatePhysics(){
+const vh = current * magnetic * 0.12;
+const force = current * magnetic * 0.08;
+const drift = current * 1.7;
+const rh = magnetic===0 ? 0 : vh/magnetic;
+
+particles.forEach(p=>{
+p.x += p.vx;
+p.vy += magnetic * current * 0.03;
+p.vy *= 0.94;
+p.y += p.vy;
+
+if(p.x > 780){
+p.x = 120;
+}
+
+if(p.y > 330){
+p.y = 330;
+p.vy *= -0.5;
+}
+
+if(p.y < 170){
+p.y = 170;
+p.vy *= -0.5;
+}
+});
+
+document.getElementById('vhVal').innerText = vh.toFixed(2)+' mV';
+document.getElementById('forceVal').innerText = force.toFixed(3)+' N';
+document.getElementById('driftVal').innerText = drift.toFixed(2)+' m/s';
+document.getElementById('hallVal').innerText = rh.toFixed(3);
+}
+
+function drawParticles(){
+particles.forEach(p=>{
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle = '#4fc3f7';
+ctx.shadowColor = '#4fc3f7';
+ctx.shadowBlur = 20;
+ctx.fill();
+
+ctx.fillStyle = '#ffffff';
+ctx.font = '10px Arial';
+ctx.fillText('e⁻',p.x-7,p.y+3);
+});
+}
+
+function drawHallVoltage(){
+ctx.strokeStyle = '#66bb6a';
+ctx.lineWidth = 2;
+
+ctx.beginPath();
+ctx.moveTo(820,180);
+ctx.lineTo(860,180);
+ctx.lineTo(860,320);
+ctx.lineTo(820,320);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.arc(860,250,28,0,Math.PI*2);
+ctx.stroke();
+
+ctx.fillStyle = '#66bb6a';
+ctx.font = '16px Orbitron';
+ctx.fillText('VH',847,255);
+}
+
+function draw(){
+ctx.clearRect(0,0,CW,CH);
+
+drawConductor();
+drawField();
+drawMagnet();
+drawCurrentArrow();
+drawHallVoltage();
+drawParticles();
+}
+
+function loop(){
+if(running){
+updatePhysics();
+}
+
+draw();
+requestAnimationFrame(loop);
+}
+
+loop();
+
+window.addEventListener('resize',()=>{
+const rect = canvas.getBoundingClientRect();
+
+if(rect.width < 900){
+canvas.style.height = (rect.width * 0.55) + 'px';
+}
+});
+
+document.addEventListener('visibilitychange',()=>{
+if(document.hidden){
+running = false;
+}
+});
+
+window.onerror = function(message){
+console.error('Hall Effect Simulator Error:',message);
+};
+
+</script>
+</body>
+</html>
