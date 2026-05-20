@@ -47,7 +47,7 @@ button.purple{border-color:var(--accent4);color:var(--accent4);}
 .slider-sw::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#5fa0c0;border-radius:50%;transition:transform 0.2s,background 0.2s;}
 .toggle input:checked+.slider-sw{background:rgba(0,229,255,0.2);}
 .toggle input:checked+.slider-sw::before{transform:translateX(18px);background:var(--accent);box-shadow:0 0 7px var(--accent);}
-.meter-box{background:rgba(0,20,40,0.7);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:9px;position:relative;overflow:hidden;}
+.meter-box{background:rgba(0,20,40,0.7);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:99px;position:relative;overflow:hidden;}
 .meter-box::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,255,0.03) 0%,transparent 60%);}
 .meter-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:#5fa0c0;letter-spacing:0.1em;text-transform:uppercase;}
 .meter-val{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,0.6);letter-spacing:0.05em;line-height:1.2;margin-top:2px;}
@@ -296,7 +296,7 @@ button.purple{border-color:var(--accent4);color:var(--accent4);}
 <div class="quiz-layout">
   <div class="quiz-card">
     <div id="quizBody">
-      <div class="quiz-progress">Soal <span id="qNum">1</span>/<span id="qTotal">8</span> &nbsp;|&nbsp; Skor: <span id="qScore" style="color:var(--accent)">0</span></div>
+      <div class="quiz-progress">Soal <span id="qNum">1</span>/<span id="qTotal">7</span> &nbsp;|&nbsp; Skor: <span id="qScore" style="color:var(--accent)">0</span></div>
       <div class="quiz-q" id="quizQ"></div>
       <div class="quiz-options" id="quizOpts"></div>
       <div class="quiz-feedback" id="quizFB"></div>
@@ -305,7 +305,7 @@ button.purple{border-color:var(--accent4);color:var(--accent4);}
       </div>
     </div>
     <div id="quizDone" class="score-box" style="display:none">
-      <div class="score-big" id="finalScore">0/8</div>
+      <div class="score-big" id="finalScore">0/7</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:#5fa0c0;margin-top:9px" id="finalMsg"></div>
       <div class="btn-row" style="justify-content:center;margin-top:18px">
         <button onclick="startQuiz()" style="flex:0;padding:9px 26px">↺ ULANGI QUIZ</button>
@@ -727,7 +727,6 @@ canvas.addEventListener('mouseleave',()=>document.getElementById('tooltip').styl
 const QUESTIONS=[
   {q:'Siapa penemu Efek Hall dan pada tahun berapa?',opts:['Michael Faraday, 1831','Edwin Hall, 1879','James Maxwell, 1873','Nikola Tesla, 1895'],ans:1,exp:'Edwin Hall menemukan efek ini pada 1879 saat meneliti gaya pada arus dalam medan magnet.'},
   {q:'Gaya apakah yang menyebabkan pembawa muatan terdefleksi dalam Efek Hall?',opts:['Gaya Gravitasi','Gaya Coulomb','Gaya Lorentz','Gaya Ampere'],ans:2,exp:'Gaya Lorentz F = q(v × B) mendorong pembawa muatan ke sisi konduktor.'},
-  {q:'Jika I=2A, B=1T, n=5×10²⁸ m⁻³, e=1.6×10⁻¹⁹C, d=0.01m, berapa V_H?',opts:['2.5 μV','25 mV','0.25 mV','2.5 mV'],ans:0,exp:'VH = IB/(ned) = 2×1/(5×10²⁸×1.6×10⁻¹⁹×0.01) = 2.5 μV'},
   {q:'Pada semikonduktor p-type, pembawa muatan mayoritas adalah...',opts:['Elektron','Foton','Hole (lubang)','Ion positif'],ans:2,exp:'Pada p-type, atom akseptor menciptakan "hole" sebagai pembawa muatan positif.'},
   {q:'Tanda Tegangan Hall (V_H) dapat digunakan untuk menentukan...',opts:['Suhu konduktor','Tipe pembawa muatan (n atau p)','Resistansi total','Kapasitansi material'],ans:1,exp:'Polaritas VH menentukan apakah pembawa mayoritas adalah elektron (n-type) atau hole (p-type).'},
   {q:'Rumus Koefisien Hall (R_H) yang benar adalah...',opts:['R_H = nq','R_H = 1/(nq)','R_H = B/(nI)','R_H = VH·d/I'],ans:1,exp:'Koefisien Hall R_H = 1/(nq), n=konsentrasi pembawa, q=muatan elektron.'},
@@ -779,4 +778,3 @@ startQuiz();
 </script>
 </body>
 </html>
-
